@@ -1,4 +1,5 @@
 import json
+import asyncio
 from fastapi import FastAPI
 from llama_model import LlamaModel
 
@@ -15,6 +16,7 @@ llama_model_inference.predict(json.dumps({"prompt": "test", "max_tokens": 2}))
 # Create an instance of the FastAPI application
 app = FastAPI()
 
+
 @app.post("/predict")
 async def predict_text(json_input: dict):
     """
@@ -26,8 +28,12 @@ async def predict_text(json_input: dict):
     Returns:
     - dict: The model's prediction results.
     """
-    result = llama_model_inference.predict(json.dumps(json_input))
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None, llama_model_inference.predict, json.dumps(json_input)
+    )
     return result
+
 
 @app.get("/health_check")
 async def health_check():
